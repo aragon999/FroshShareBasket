@@ -1,6 +1,5 @@
 <?php
 
-
 namespace FroshShareBasket\Components\Gateway;
 
 use Doctrine\DBAL\Connection;
@@ -39,20 +38,16 @@ class DeleteCustomerBasketGateway implements DeleteCustomerBasketGatewayInterfac
         $subQb = $this->connection->createQueryBuilder();
 
         $subQb
-            ->select('basketCustomer.basket_id')
-            ->from('s_plugin_sharebasket_basket_customer', 'basketCustomer')
-            ->innerJoin('basketCustomer', 's_plugin_sharebasket_baskets', 'baskets', 'baskets.id = basketCustomer.basket_id')
-            ->andWhere($qb->expr()->eq('baskets.basket_id', ':basketId'))
-            ->andWhere($qb->expr()->eq('basketCustomer.customer_id', ':customerId'));
+            ->select('basket.id')
+            ->from('s_plugin_sharebasket_baskets', 'basket')
+            ->where($qb->expr()->eq('basket.basket_id', ':basketId'))
+            ->andWhere($qb->expr()->eq('basket.id', 's_plugin_sharebasket_basket_customer.basket_id'))
+        ;
 
         $qb
             ->delete('s_plugin_sharebasket_basket_customer')
-            ->where(
-                $qb->expr()->eq(
-                    's_plugin_sharebasket_basket_customer.basket_id',
-                    '('.$subQb->getSQL().')'
-                )
-            )
+            ->andWhere('EXISTS(' . $subQb->getSQL() . ')')
+            ->andWhere($qb->expr()->eq('s_plugin_sharebasket_basket_customer.customer_id', ':customerId'))
         ;
 
         return $qb;
