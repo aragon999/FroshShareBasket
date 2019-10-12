@@ -41,19 +41,22 @@ class CustomerBasketService implements CustomerBasketServiceInterface
 
         $ordernumbers = [];
 
-        foreach($customerBasketList as $basket) {
-            foreach($basket->getItems() as $item){
+        foreach ($customerBasketList as $basket) {
+            foreach ($basket->getItems() as $item) {
                 $ordernumbers[] = $item->getOrdernumber();
             }
         }
 
         $products = $this->listProductService->getList($ordernumbers, $context);
 
-        foreach($customerBasketList as $basket) {
+        foreach ($customerBasketList as $basket) {
             array_map(
-                function ($item) use($products) {
-                    $item->setProduct($products[$item->getOrdernumber()]);
-                    },
+                function ($item) use ($products) {
+                    $product = $products[$item->getOrdernumber()];
+                    if ($product) {
+                        $item->setProduct($product);
+                    }
+                },
                 $basket->getItems()
             );
         }
@@ -61,11 +64,10 @@ class CustomerBasketService implements CustomerBasketServiceInterface
         return $customerBasketList;
     }
 
-    public function deleteBasket($basketId) {
-
+    public function deleteBasket($basketId)
+    {
         $customerId = $this->session->offsetGet('sUserId') ?: $this->session->offsetGet('auto-user');
 
         $this->deleteCustomerBasketGateway->deleteBasket($basketId, $customerId);
-        return 0;
     }
 }
