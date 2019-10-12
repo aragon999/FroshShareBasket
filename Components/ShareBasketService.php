@@ -132,8 +132,8 @@ class ShareBasketService implements ShareBasketServiceInterface
 
         $hash = $data['hash'];
 
-        // TODO: Do we want this?
-        $customerId = $this->session->offsetGet('sUserId') ?: $this->session->offsetGet('auto-user');
+        // We only want to save the basket for logged in customers, the basket of slt users will be saved on login
+        $customerId = $this->session->offsetGet('sUserId');
 
         $basket = $this->modelManager->getRepository(Basket::class)->findOneBy(['hash' => $hash]);
         $customer = $this->modelManager->getRepository(Customer::class)->findOneById($customerId);
@@ -143,10 +143,10 @@ class ShareBasketService implements ShareBasketServiceInterface
 
             if ($this->session->offsetGet('froshShareBasketHash') !== $hash) {
                 $basket->increaseSaveCount();
+            }
 
-                if ($customer instanceof Customer && !$basket->hasCustomer($customer)) {
-                    $basket->addCustomer($customer);
-                }
+            if ($customer instanceof Customer && !$basket->hasCustomer($customer)) {
+                $basket->addCustomer($customer);
             }
 
             $this->modelManager->flush();

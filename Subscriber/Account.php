@@ -6,6 +6,7 @@ use Enlight\Event\SubscriberInterface;
 use Enlight_Components_Session_Namespace as Session;
 use FroshShareBasket\Components\Service\CustomerBasketServiceInterface;
 use Shopware\Bundle\StoreFrontBundle\Service\ContextServiceInterface;
+use FroshShareBasket\Components\ShareBasketService;
 
 class Account implements SubscriberInterface
 {
@@ -24,10 +25,12 @@ class Account implements SubscriberInterface
     public function __construct(
         Session $session,
         ContextServiceInterface $contextService,
+        ShareBasketService $shareBasketService,
         CustomerBasketServiceInterface $customerBasketService
     ) {
         $this->session = $session;
         $this->contextService = $contextService;
+        $this->shareBasketService = $shareBasketService;
         $this->customerBasketService = $customerBasketService;
     }
 
@@ -35,6 +38,7 @@ class Account implements SubscriberInterface
     {
         return [
             'Enlight_Controller_Action_Frontend_Account_Carts' => 'onActionFrontendAccountCarts',
+            'Shopware_Modules_Admin_Login_FilterResult' => 'onAdminLoginFilterResult',
         ];
     }
 
@@ -51,5 +55,18 @@ class Account implements SubscriberInterface
         );
 
         return true;
+    }
+
+    public function onAdminLoginFilterResult(\Enlight_Event_EventArgs $args)
+    {
+        // If the login was not successful we wont do anything
+        if ($args->get('error')) {
+            return;
+        }
+
+        // If a basket was saved, also save it in the customers account
+        if ($this->session->offsetExists('froshShareBasketHash')) {
+            $this->shareBasketService->saveBasket();
+        }
     }
 }
