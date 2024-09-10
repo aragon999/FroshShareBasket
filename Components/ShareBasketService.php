@@ -154,6 +154,7 @@ class ShareBasketService implements ShareBasketServiceInterface
                 $basket->addCustomer($customer);
             }
 
+            $this->modelManager->persist($basket);
             $this->modelManager->flush();
 
             return $this->generateBasketUrl($basket->getBasketID(), false);

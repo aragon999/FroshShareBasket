@@ -25,7 +25,6 @@ class Basket extends ModelEntity
      */
     protected $articles;
 
-
     /**
      * @var ArrayCollection
      * @ORM\ManyToMany(targetEntity="Shopware\Models\Customer\Customer")
